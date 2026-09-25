@@ -1,7 +1,9 @@
 from __future__ import annotations
 import numpy as np
+from time import perf_counter
 
 def vizinho_mais_proximo(d, origem: int = 1, otimo_conhecido: float | None = None) -> dict:
+    inicio = perf_counter()
     matriz = np.array(d, dtype=float)
 
     if matriz.ndim != 2 or matriz.shape[0] != matriz.shape[1]:
@@ -33,7 +35,8 @@ def vizinho_mais_proximo(d, origem: int = 1, otimo_conhecido: float | None = Non
     res = {
         "cidade_origem": origem,
         "custo": float(custo_total),
-        "rota": rota
+        "rota": rota,
+        "tempo": perf_counter() - inicio,
     }
 
     if otimo_conhecido is not None and otimo_conhecido > 0:
@@ -41,6 +44,26 @@ def vizinho_mais_proximo(d, origem: int = 1, otimo_conhecido: float | None = Non
         res["gap"] = float(gap)
 
     return res
+
+
+def vizinho_mais_proximo_multistart(
+    d, otimo_conhecido: float | None = None
+) -> dict:
+    inicio = perf_counter()
+    matriz = np.array(d, dtype=float)
+    if matriz.ndim != 2 or matriz.shape[0] != matriz.shape[1]:
+        raise ValueError("d deve ser uma matriz quadrada de distâncias.")
+    if matriz.shape[0] == 0:
+        raise ValueError("d deve conter pelo menos uma cidade.")
+
+    resultados = [
+        vizinho_mais_proximo(matriz, origem, otimo_conhecido)
+        for origem in range(1, matriz.shape[0] + 1)
+    ]
+    melhor = dict(min(resultados, key=lambda resultado: resultado["custo"]))
+    melhor["tempo"] = perf_counter() - inicio
+    melhor["multistart"] = True
+    return melhor
 
 
 if __name__ == "__main__":
@@ -59,6 +82,9 @@ if __name__ == "__main__":
 
     # Executa partindo da Cidade 1
     resultado = vizinho_mais_proximo(dist, origem=1, otimo_conhecido=otimo_exemplo)
+    resultado_multistart = vizinho_mais_proximo_multistart(
+        dist, otimo_conhecido=otimo_exemplo
+    )
 
     # Exibição formatada dos resultados
     print("=" * 35)
@@ -66,6 +92,18 @@ if __name__ == "__main__":
     print("=" * 35)
     print(f"  Cidade de Origem : Cidade {resultado['cidade_origem']}")
     print(f"  Custo Total      : {resultado['custo']:.2f}")
+    print(f"  Tempo (s)        : {resultado['tempo']:.6f}")
+    print(f"  Rota             : {resultado['rota']}")
     if "gap" in resultado:
         print(f"  GAP              : {resultado['gap']:.6f} ({resultado['gap'] * 100:.2f}%)")
     print("=" * 35)
+    print("  MULTISTART")
+    print(f"  Cidade de Origem : Cidade {resultado_multistart['cidade_origem']}")
+    print(f"  Custo Total      : {resultado_multistart['custo']:.2f}")
+    print(f"  Tempo (s)        : {resultado_multistart['tempo']:.6f}")
+    print(f"  Rota             : {resultado_multistart['rota']}")
+    if "gap" in resultado_multistart:
+        print(
+            f"  GAP              : {resultado_multistart['gap']:.6f} "
+            f"({resultado_multistart['gap'] * 100:.2f}%)"
+        )
