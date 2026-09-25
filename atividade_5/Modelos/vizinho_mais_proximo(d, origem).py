@@ -1,4 +1,7 @@
 from __future__ import annotations
+import math
+from pathlib import Path
+
 import numpy as np
 from time import perf_counter
 
@@ -66,29 +69,46 @@ def vizinho_mais_proximo_multistart(
     return melhor
 
 
+def carregar_berlin52() -> np.ndarray:
+    caminho = Path(__file__).resolve().parents[1] / "dados" / "berlin52.tsp"
+    coordenadas = []
+    lendo_coordenadas = False
+
+    for linha in caminho.read_text().splitlines():
+        linha = linha.strip()
+        if linha == "NODE_COORD_SECTION":
+            lendo_coordenadas = True
+            continue
+        if linha == "EOF":
+            break
+        if lendo_coordenadas:
+            partes = linha.split()
+            if len(partes) >= 3:
+                coordenadas.append((float(partes[1]), float(partes[2])))
+
+    if not coordenadas:
+        raise ValueError(f"Nenhuma coordenada encontrada em {caminho}.")
+
+    matriz = np.zeros((len(coordenadas), len(coordenadas)))
+    for i, (x1, y1) in enumerate(coordenadas):
+        for j in range(i + 1, len(coordenadas)):
+            x2, y2 = coordenadas[j]
+            distancia = int(math.hypot(x1 - x2, y1 - y2) + 0.5)
+            matriz[i, j] = matriz[j, i] = distancia
+    return matriz
+
+
 if __name__ == "__main__":
-    # Matriz de distâncias de exemplo
-    dist = np.array(
-        [
-            [0, 10, 15, 20],
-            [10, 0, 35, 25],
-            [15, 35, 0, 30],
-            [20, 25, 30, 0],
-        ]
-    )
-    
-    # Ótimo conhecido da instância (substitua pelo valor real da instância, ex: 7542 para berlin52)
-    otimo_exemplo = 80.0
+    dist = carregar_berlin52()
+    otimo_conhecido = 7542
 
-    # Executa partindo da Cidade 1
-    resultado = vizinho_mais_proximo(dist, origem=1, otimo_conhecido=otimo_exemplo)
+    resultado = vizinho_mais_proximo(dist, origem=1, otimo_conhecido=otimo_conhecido)
     resultado_multistart = vizinho_mais_proximo_multistart(
-        dist, otimo_conhecido=otimo_exemplo
+        dist, otimo_conhecido=otimo_conhecido
     )
 
-    # Exibição formatada dos resultados
     print("=" * 35)
-    print("  VIZINHO MAIS PRÓXIMO (CIDADE 1)")
+    print("  BERLIN52 - VIZINHO MAIS PRÓXIMO")
     print("=" * 35)
     print(f"  Cidade de Origem : Cidade {resultado['cidade_origem']}")
     print(f"  Custo Total      : {resultado['custo']:.2f}")
