@@ -102,3 +102,8 @@ if __name__ == "__main__":
     print(f"  Custo Total      : {resultado_multistart['custo']:.2f}")
     print(f"  Tempo (s)        : {resultado_multistart['tempo']:.6f}")
     print(f"  Rota             : {resultado_multistart['rota']}")
+    if "gap" in resultado_multistart:
+        print(
+            f"  GAP              : {resultado_multistart['gap']:.6f} "
+            f"({resultado_multistart['gap'] * 100:.2f}%)"
+        )
