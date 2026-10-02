@@ -69,8 +69,7 @@ def vizinho_mais_proximo_multistart(
     return melhor
 
 
-def carregar_berlin52() -> np.ndarray:
-    caminho = Path(__file__).resolve().parents[1] / "dados" / "berlin52.tsp"
+def carregar_instancia(caminho: Path) -> np.ndarray:
     coordenadas = []
     lendo_coordenadas = False
 
@@ -98,32 +97,43 @@ def carregar_berlin52() -> np.ndarray:
     return matriz
 
 
-if __name__ == "__main__":
-    dist = carregar_berlin52()
-    otimo_conhecido = 7542
-
-    resultado = vizinho_mais_proximo(dist, origem=1, otimo_conhecido=otimo_conhecido)
-    resultado_multistart = vizinho_mais_proximo_multistart(
-        dist, otimo_conhecido=otimo_conhecido
-    )
-
-    print("=" * 35)
-    print("  BERLIN52 - VIZINHO MAIS PRÓXIMO")
-    print("=" * 35)
+def imprimir_resultado(titulo: str, resultado: dict) -> None:
+    if titulo:
+        print(f"  {titulo}")
     print(f"  Cidade de Origem : Cidade {resultado['cidade_origem']}")
     print(f"  Custo Total      : {resultado['custo']:.2f}")
     print(f"  Tempo (s)        : {resultado['tempo']:.6f}")
     print(f"  Rota             : {resultado['rota']}")
     if "gap" in resultado:
-        print(f"  GAP              : {resultado['gap']:.6f} ({resultado['gap'] * 100:.2f}%)")
-    print("=" * 35)
-    print("  MULTISTART")
-    print(f"  Cidade de Origem : Cidade {resultado_multistart['cidade_origem']}")
-    print(f"  Custo Total      : {resultado_multistart['custo']:.2f}")
-    print(f"  Tempo (s)        : {resultado_multistart['tempo']:.6f}")
-    print(f"  Rota             : {resultado_multistart['rota']}")
-    if "gap" in resultado_multistart:
         print(
-            f"  GAP              : {resultado_multistart['gap']:.6f} "
-            f"({resultado_multistart['gap'] * 100:.2f}%)"
+            f"  GAP              : {resultado['gap']:.6f} "
+            f"({resultado['gap'] * 100:.2f}%)"
         )
+
+
+if __name__ == "__main__":
+    base_dados = Path(__file__).resolve().parents[1] / "dados"
+    instancias = [
+        ("berlin52.tsp", 7542),
+        ("ch150.tsp", 6528),
+        ("dj38.tsp", 6656),
+        ("kroA100.tsp", 21282),
+        ("kroA200.tsp", 29368),
+    ]
+
+    for nome_arquivo, otimo_conhecido in instancias:
+        caminho = base_dados / nome_arquivo
+        dist = carregar_instancia(caminho)
+        nome = caminho.stem.upper()
+        resultado = vizinho_mais_proximo(
+            dist, origem=1, otimo_conhecido=otimo_conhecido
+        )
+        resultado_multistart = vizinho_mais_proximo_multistart(
+            dist, otimo_conhecido=otimo_conhecido
+        )
+
+        print("=" * 35)
+        print(f"  {nome} - VIZINHO MAIS PRÓXIMO")
+        imprimir_resultado("", resultado)
+        print("=" * 35)
+        imprimir_resultado("MULTISTART", resultado_multistart)
