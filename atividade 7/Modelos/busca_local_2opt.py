@@ -12,7 +12,7 @@ def busca_local_2opt(d, rota):
     )
     custo = float(custo_inicial)
     inversoes = 0
-
+    print(f"Custo inicial: {custo_inicial}")
     while True:
         movimento_encontrado = False
         arestas_examinadas = set()
