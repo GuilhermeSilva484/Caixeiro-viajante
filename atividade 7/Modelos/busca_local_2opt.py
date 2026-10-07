@@ -62,3 +62,19 @@ def busca_local_2opt(d, rota):
         "inversoes": inversoes,
         "tempo": time.perf_counter() - inicio,
     }
+
+
+if __name__ == "__main__":
+    exemplo = [
+        [0, 10, 15, 20],
+        [10, 0, 35, 25],
+        [15, 35, 0, 30],
+        [20, 25, 30, 0],
+    ]
+    rota_inicial = [1, 2, 3, 4]
+    resultado = busca_local_2opt(exemplo, rota_inicial)
+
+    print("Rota final:", resultado["rota"])
+    print(f"Custo: {resultado['custo']:.2f}")
+    print("Inversões:", resultado["inversoes"])
+    print(f"Tempo: {resultado['tempo']:.6f}s")
