@@ -1,14 +1,11 @@
-from __future__ import annotations
-
+from __future__ import annotations#Permite o uso de anotações de tipo avançadas, como tipos de retornos de função que ainda não foram declarados, melhorando a legibilidade e a manutenção do código.
 import time
 from pathlib import Path
-
 import numpy as np
 import tsplib95
 from scipy import sparse
 from scipy.optimize import Bounds, LinearConstraint, milp
 from scipy.spatial.distance import cdist
-
 
 def carregar_instancia(arquivo_tsp: str | Path):
     """Carrega e valida o arquivo no formato TSPLIB."""
@@ -94,12 +91,21 @@ def resolver_tsp_mtz(problema) -> dict:
         integrality=integrality,
         bounds=Bounds(lb, ub),
         constraints=constraints,
-        options={"time_limit": 120.0},
+        options={"time_limit": 1800},
     )
     tempo = time.perf_counter() - inicio
 
-    if not result.success:
-        raise RuntimeError(f"Erro ao resolver o TSP: {result.message}")
+    if result.x is None:
+        return {
+            "rota": None,
+            "custo": None,
+            "lb": None,
+            "ub": None,
+            "gap": None,
+            "tempo": tempo,
+            "status": result.status,
+            "message": result.message,
+        }
 
     # 5. Reconstrução da Rota
     x_sol = result.x[:num_x].reshape((n, n))
